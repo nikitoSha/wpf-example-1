@@ -9,9 +9,9 @@ namespace wpf_example_1.models.posts
     public class PostModel
     {
         public bool isChecked { get; set; }
-        public int id { get; set; }
+        public long id { get; set; }
         public string title { get; set; }
         public string body { get; set; }
-        public int userId { get; set; }
+        public long userId { get; set; }
     }
 }

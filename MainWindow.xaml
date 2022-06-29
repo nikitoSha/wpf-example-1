@@ -22,6 +22,7 @@
             <MenuItem Header="Действия">
                 <MenuItem Name="loadFromDB" Header="Загрузить из базы" Click="loadFromDB_Click"/>
                 <MenuItem Name="saveToDB" Header="Сохранить в базу" Click="saveToDB_Click"/>
+                <MenuItem Name="clearDB" Header="Очистить базу" Click="clearDB_Click"/>
                 <MenuItem Name="LoadFromNet" Header="Загрузить с сервера" Click="LoadFromNet_Click"/>
                 <MenuItem Name="createPostOnServer" Header="Создать пост на сервере" Click="createPostOnServer_Click"/>
                 <Separator/>

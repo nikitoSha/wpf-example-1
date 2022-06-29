@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using wpf_example_1.helpers;
 using wpf_example_1.models.posts;
+using System.Data.SQLite;
 
 namespace wpf_example_1
 {
@@ -31,14 +33,15 @@ namespace wpf_example_1
 
         private void addPostsToLocalDB()
         {
-            int currentUserIndex = 0;
-            string result = "";
+            SQLiteManager.deletePosts();
+
+            int currentPostIndex = 0;
+            //string result = "";
             new AsyncHelper().doBackgroundWorker(
                 //exec code in background
                 () => {
-                    //todo: sqlite
-
-                    currentUserIndex++;
+                    SQLiteManager.addRowToPost(posts[currentPostIndex]);
+                    currentPostIndex++;
                 },
                 //onProgress
                 (int current, int total, double percent) => {
@@ -48,15 +51,31 @@ namespace wpf_example_1
                 },
                 //onComplete
                 () => {
-                    Console.WriteLine("Сохранение пользователей в локальную БД SQLite завершено.");
+                    MessageBox.Show("Сохранение постов в локальную БД SQLite завершено.");
                 },
-                1000, 0
+                posts.Count, 0
                 );
         }
 
         private void loadPostsFromLocalDB()
         {
-            //todo: sqlite
+            mDataGrid.ItemsSource = null;
+            if (!File.Exists("database.db"))
+            {
+                SQLiteManager.createDB();
+                SQLiteManager.createTable_post();
+                MessageBox.Show("В локальной базе нет данных. Загрузите данные с сервера и сохраните их локально.");
+            }
+            else
+            {
+                posts.Clear();
+                posts = SQLiteManager.getPosts();
+                updateTable();
+                if (posts == null || posts.Count == 0)
+                {
+                    MessageBox.Show("В локальной базе нет данных. Загрузите данные с сервера и сохраните их локально.");                    
+                }
+            }
 
         }
 
@@ -64,12 +83,19 @@ namespace wpf_example_1
 
         private void loadFromDB_Click(object sender, RoutedEventArgs e)
         {
-
+            mDataGrid.ItemsSource = null;
+            loadPostsFromLocalDB();
         }
 
         private void saveToDB_Click(object sender, RoutedEventArgs e)
         {
+            addPostsToLocalDB();
+        }
 
+        private void clearDB_Click(object sender, RoutedEventArgs e)
+        {
+            SQLiteManager.deletePosts();
+            loadPostsFromLocalDB();
         }
 
         private void LoadFromNet_Click(object sender, RoutedEventArgs e)
@@ -97,12 +123,12 @@ namespace wpf_example_1
         /// </summary>
         private void getPosts()
         {
+            mDataGrid.ItemsSource = null;
             RestApiManager.getPosts(
                 (object answer) => {
                     AsyncHelper.doInMainThread(() => {
                         posts = (List<PostModel>)answer;
-                        mDataGrid.ItemsSource = null;
-                        mDataGrid.ItemsSource = posts;
+                        updateTable();
                     });
                 },
                 (string errMsg) =>
@@ -163,5 +189,13 @@ namespace wpf_example_1
         {
             loadPostsFromLocalDB();
         }
+
+        private void updateTable()
+        {
+            mDataGrid.ItemsSource = null;
+            mDataGrid.ItemsSource = posts;
+        }
+
+
     }
 }
